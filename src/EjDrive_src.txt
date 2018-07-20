@@ -1,0 +1,39 @@
+Sub Main()
+Dim st$, ar, answ$, ret, i%, S_Adr%, E_Adr%
+st = FD_Names1
+If st = "" Then Exit Sub
+ar = Split(st, "|")
+If UBound(ar) <> 0 Then
+  answ = "Найдено " & UBound(ar) + 1 & " устройств: " & String(2, vbLf)
+  For i = 0 To UBound(ar)
+    answ = answ & i + 1 & ". " & ar(i) & vbLf
+  Next i
+  answ = answ & vbLf & "Введите номер извлекаемого диска," & vbLf & _
+    "или пустое поле, чтобы извлечь все диски."
+inp:
+  ret = InputBox(answ, "Alex Dragokas' Technologies")
+  If StrPtr(ret) = 0 Then Exit Sub
+  If ret = vbNullString Then
+      E_Adr = UBound(ar)
+    Else
+      If ret - 1 > UBound(ar) Or ret - 1 < LBound(ar) Then MsgBox "Неверный ввод! Повторите...": GoTo inp
+      S_Adr = ret - 1
+      E_Adr = S_Adr
+  End If
+End If
+For i = S_Adr To E_Adr
+  Shell "cmd /c removedrive.exe " & Left(ar(i), 1) & ": -l -e -i -h", vbNormalFocus
+Next i
+End Sub
+ 
+Function FD_Names1() As String
+Dim n
+For Each n In CreateObject("Scripting.FileSystemObject").Drives
+  If n.DriveType = 1 And n.IsReady = True Then
+    If Not n.DriveLetter = "A" And Not n.DriveLetter = "B" Then
+      FD_Names1 = FD_Names1 & IIf(FD_Names1 = "", "", "|") & n.DriveLetter & ":" & _
+          "  " & n.VolumeName & "  " & Round(n.totalsize / 1024 / 1024 / 1024, 2) & " Gb"
+    End If
+  End If
+Next
+End Function
